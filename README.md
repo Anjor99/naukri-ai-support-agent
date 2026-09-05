@@ -1,1 +1,1 @@
-# naukri-ai-support-agent
+# Naukri.com — AI Recruitment & HR Support Agent
