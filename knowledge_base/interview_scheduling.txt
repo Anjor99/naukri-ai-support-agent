@@ -1,0 +1,6 @@
+Document: Interview Scheduling Process
+Candidates who pass initial screening are contacted for an interview.
+The recruiter provides available interview slots.
+Candidates select or confirm a suitable slot.
+If a candidate cannot attend, they should request rescheduling as early as possible.
+Interview confirmation should include the date, time, format, and relevant instructions.
