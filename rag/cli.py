@@ -21,9 +21,10 @@ Usage:
 import argparse
 import shutil
 from chromadb import PersistentClient
+from settings import settings
 
 # database location
-DB_PATH = "data/chroma_db"
+DB_PATH = settings.chroma_db_path
 
 # create client
 client = PersistentClient(path=DB_PATH)

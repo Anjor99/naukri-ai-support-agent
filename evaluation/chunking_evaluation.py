@@ -24,8 +24,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from rag.vector_store import VectorStore
 from rag.chunking import ChunkingStrategy
 from rag.embeddings import EmbeddingModel
+from settings import settings
 
-DB_PATH = "data/chroma_db"
+DB_PATH = settings.chroma_db_path
 TOP_K = 3
 
 FIXED_COLLECTION_NAME = "fixed_size_collection"

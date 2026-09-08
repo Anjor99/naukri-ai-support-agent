@@ -2,11 +2,12 @@ from chromadb import Collection, PersistentClient
 from .chunking import Chunk, ChunkingStrategy
 from .embeddings import EmbeddingModel
 import numpy as np
+from settings import settings
 
 class VectorStore:
     def __init__(self, embedding_model: EmbeddingModel):
         # initialize persistent chromadb client and collection
-        self.client = PersistentClient(path="data/chroma_db")
+        self.client = PersistentClient(path=settings.chroma_db_path)
         self.embedding_model = embedding_model
         
     def create_collection(self, collection_name: str) -> Collection:
