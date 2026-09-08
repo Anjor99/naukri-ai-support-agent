@@ -1,10 +1,19 @@
+import os
+from urllib import response
+
+from groq import Groq
+
 from .vector_store import VectorStore
 from chromadb import Collection
+from settings import settings
 
 class GroundedGenerator:
     def __init__(self, vector_store: VectorStore):
         self.vector_store = vector_store
+        self.groq_client = Groq(api_key=settings.groq_api_key, max_retries=3)
         self.THRESHOLD = 0.3
+        self.MOCK_LLM = settings.mock_llm
+        self.SYSTEM_PROMPT = settings.system_prompt
         
     def generate(self, query: str, collection: Collection, top_k: int = 5) -> str:
         # Step 1: Search the vector store for relevant chunks
@@ -25,7 +34,10 @@ class GroundedGenerator:
         context = " ".join(contexts)
         
         # Step 4: Generate a response using the context
-        response = self.mock_llm_response(query, context)
+        if self.MOCK_LLM:
+            response = self.mock_llm_response(query, context)
+        else:
+            response = self.groq_llm_response(query, context)
         
         return response
     
@@ -33,6 +45,32 @@ class GroundedGenerator:
         # This is a mock function to simulate an LLM response.
         # In a real implementation, you would call an actual LLM API here.
         return f"Based on the context provided, the answer to your query is: {context}."
+    
+    def groq_llm_response(self, query: str, context: str) -> str:
+        user_prompt = f"""
+            Context:
+            {context}
+
+            Question:
+            {query}
+        """
+        response = self.groq_client.chat.completions.create(
+                model=settings.groq_model,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": self.SYSTEM_PROMPT
+                },
+                {
+                    "role": "user",
+                    "content": user_prompt
+                }
+            ],
+            temperature=0
+        )
+
+        return response.choices[0].message.content
+        
     
     
 if __name__ == "__main__":
