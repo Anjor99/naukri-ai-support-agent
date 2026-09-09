@@ -39,13 +39,6 @@ def generate_applications(n : int) -> list[dict]:
     """
     
     JOB_APPLICATIONS = []
-    # Making sure "flagged_priority_review" retains only around 20% True
-    # priority_count = int(n * 0.20)
-
-    # priority_indices = random.sample(
-    #     range(1, n + 1),
-    #     priority_count
-    # )
     # For Populating JOB_APPLICATIONS
     for i in range(1,n+1):
         application = {}
@@ -59,10 +52,6 @@ def generate_applications(n : int) -> list[dict]:
         """
         application["expected_salary_inr"] = random.randint(300000,3000000)
         application["days_since_created"] = random.randint(0,30)
-        # if i in priority_indices:
-        #     application["flagged_priority_review"] = True
-        # else:
-        #     application["flagged_priority_review"] = False
         application["flagged_priority_review"] = random.choices([True, False])[0]
         JOB_APPLICATIONS.append(application)
         
@@ -147,6 +136,7 @@ def validate_applications(job_appls : list[dict]) -> bool:
 JOB_APPLICATIONS = generate_applications(50) # To universally generate applications for any other module that imports this dataset.py file
             
 def main():
+    random.seed(1550)
     JOB_APPLICATIONS = generate_applications(50)
     try:
         valid_app_count = validate_applications(JOB_APPLICATIONS)
