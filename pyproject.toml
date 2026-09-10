@@ -7,6 +7,7 @@ requires-python = ">=3.12"
 dependencies = [
     "chromadb>=1.5.9",
     "groq>=1.7.0",
+    "langgraph>=1.2.11",
     "python-dotenv>=1.2.3",
     "sentence-transformers>=6.0.1",
 ]
