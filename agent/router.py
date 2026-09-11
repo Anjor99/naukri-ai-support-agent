@@ -38,30 +38,48 @@ _RAG_SIGNAL_PHRASES = (
     "salary range",
 )
 
+_FOLLOW_UP_PHRASES = (
+    "its status",
+    "its salary",
+    "its expected salary",
+    "its application",
+    "this application",
+    "that application",
+    "this status",
+    "that status",
+    "what about its",
+    "how about its",
+)
 
-def route_query(query: str) -> PossibleRoutes:
-    """
-    Determines the route for a given query.
 
-    Priority order:
-      1. An explicit record id (APP-0001 etc.) is decisive -> STATUS.
-      2. Otherwise, score status-anchor phrases vs. rag-signal phrases.
-      3. Ties or no signal at all default to RAG (the safer fallback --
-         a wrong RAG answer just cites the wrong doc; a wrong STATUS
-         route fails outright with no record id to look up).
+def route_query(
+    query: str,
+    remembered_record_id: str | None = None
+) -> PossibleRoutes:
 
-    Args:
-        query (str): The input query string.
-    """
     query_lower = query.lower()
 
+    # Explicit application ID
     if _RECORD_ID_PATTERN.search(query_lower):
         return PossibleRoutes.STATUS
-    
-    # Disabled status queries without ids till persisted memory, they will go to rag
-    # status_score = sum(1 for p in _STATUS_ANCHOR_PHRASES if p in query_lower)
-    # rag_score = sum(1 for p in _RAG_SIGNAL_PHRASES if p in query_lower)
 
-    # if status_score > rag_score:
-    #     return PossibleRoutes.STATUS
+    # Follow-up to a previously remembered application
+    if remembered_record_id:
+        if any(phrase in query_lower for phrase in _FOLLOW_UP_PHRASES):
+            return PossibleRoutes.STATUS
+
+    # General RAG / policy question
+    status_score = sum(
+        1 for phrase in _STATUS_ANCHOR_PHRASES
+        if phrase in query_lower
+    )
+
+    rag_score = sum(
+        1 for phrase in _RAG_SIGNAL_PHRASES
+        if phrase in query_lower
+    )
+
+    if status_score > rag_score:
+        return PossibleRoutes.STATUS
+
     return PossibleRoutes.RAG

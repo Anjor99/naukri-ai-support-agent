@@ -14,24 +14,35 @@ def router_node(state: AgentState) -> dict:
     Returns:
         dict: The updated agent state with route.
     """
-    route = route_query(state['query']).value
+    route = route_query(
+        state["query"],
+        state.get("record_id")
+    ).value
     
     return {
         "route": route
     }
     
 def status_node(state: AgentState) -> dict:
-    """Query status based on application / record id
+    """Query application status using the current or remembered record ID."""
 
-    Args:
-        state (AgentState): The current agent state.
+    match = _RECORD_ID_PATTERN.search(state["query"])
 
-    Returns:
-        dict: The updated agent state with status_result
-    """
-    match = _RECORD_ID_PATTERN.search(state['query'])
-    record_id = match.group()
+    if match:
+        record_id = match.group().upper()
+    else:
+        record_id = state.get("record_id")
+
+    if not record_id:
+        return {
+            "status_result": {
+                "record_id": None,
+                "error": "No application record ID was provided or remembered."
+            }
+        }
+
     record = check_job_application_status(record_id)
+
     return {
         "status_result": record
     }

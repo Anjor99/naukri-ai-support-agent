@@ -9,3 +9,6 @@ class AgentState(TypedDict):
     rag_result: str
     status_result: dict
     response: str
+    history: dict
+    conversation_id: str
+    record_id: str
