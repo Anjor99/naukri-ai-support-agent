@@ -4,6 +4,7 @@ from agent.nodes import (
     router_node,
     rag_node,
     status_node,
+    field_selector_node,
     response_node,
 )
 from agent.router import PossibleRoutes
@@ -22,6 +23,7 @@ def build_graph():
     graph.add_node("rag", rag_node)
     graph.add_node("status", status_node)
     graph.add_node("response", response_node)
+    graph.add_node("field_selector", field_selector_node)
 
     # Entry point
     graph.add_edge(START, "router")
@@ -38,7 +40,8 @@ def build_graph():
 
     # Both branches converge on response
     graph.add_edge("rag", "response")
-    graph.add_edge("status", "response")
+    graph.add_edge("status", "field_selector")
+    graph.add_edge("field_selector","response")
 
     # Exit
     graph.add_edge("response", END)

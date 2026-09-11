@@ -28,8 +28,8 @@ def main():
 
     print("\n--- FRESH CONVERSATION ---")
     result3 = run_turn(
-        "What is its expected salary?",
-        conversation_id="fresh-conversation",
+        "What is the bg verification process?",
+        conversation_id=conversation_id,
     )
 
     print(result3["response"])

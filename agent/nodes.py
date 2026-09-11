@@ -1,6 +1,7 @@
 from agent.router import route_query, _RECORD_ID_PATTERN, PossibleRoutes
 from agent.tools import check_job_application_status
 from agent.state import AgentState
+from agent.field_selector import select_fields
 from rag.vector_store import VectorStore
 from rag.generator import GroundedGenerator
 from rag.embeddings import EmbeddingModel
@@ -24,7 +25,7 @@ def router_node(state: AgentState) -> dict:
     }
     
 def status_node(state: AgentState) -> dict:
-    """Query application status using the current or remembered record ID."""
+    """Query application data using the current or remembered record ID."""
 
     match = _RECORD_ID_PATTERN.search(state["query"])
 
@@ -44,7 +45,21 @@ def status_node(state: AgentState) -> dict:
     record = check_job_application_status(record_id)
 
     return {
-        "status_result": record
+        "status_result": record,
+        "record_id": record_id,
+    }
+    
+def field_selector_node(state: AgentState) -> dict:
+    """Determine which application fields the user requested."""
+
+    fields = select_fields(state["query"])
+
+    # Generic status/application query
+    if not fields:
+        fields = ["status"]
+
+    return {
+        "requested_fields": fields
     }
     
     
@@ -68,47 +83,73 @@ def rag_node(state: AgentState) -> dict:
         "rag_result": result
     }
     
-def _format_status_response(status_result: dict) -> str:
-    """Convert a status_result dict into a natural language response."""
+def _format_status_response(
+    status_result: dict,
+    requested_fields: list[str],
+) -> str:
+    """Format only the application fields requested by the user."""
+
     record_id = status_result.get("record_id")
-    status = status_result.get("status")
-    salary = status_result.get("expected_salary_inr")
-    recommend_escalation = status_result.get("recommend_escalation")
 
     if not record_id:
-        return "I couldn't find any application matching that record ID. Could you double-check the ID and try again?"
-
-    lines = [f"Here's the status for application **{record_id}**:"]
-    lines.append(f"- Current status: **{status}**")
-
-    if salary is not None:
-        lines.append(f"- Expected salary: ₹{salary:,}")
-
-    if recommend_escalation:
-        lines.append(
-            "- This application has been flagged for escalation based on its escalation score, "
-            "so it's being prioritized for review."
+        return (
+            "I couldn't find any application matching that record ID. "
+            "Could you double-check the ID and try again?"
         )
-    else:
-        lines.append("- No escalation is currently recommended for this application.")
 
-    return "\n".join(lines)
+    lines = []
+
+    if "status" in requested_fields:
+        status = status_result.get("status")
+        lines.append(f"Current status: **{status}**")
+
+    if "expected_salary_inr" in requested_fields:
+        salary = status_result.get("expected_salary_inr")
+        if salary is not None:
+            lines.append(f"Expected salary: **₹{salary:,}**")
+
+    if "days_since_created" in requested_fields:
+        days = status_result.get("days_since_created")
+        if days is not None:
+            lines.append(f"Application was created **{days} days ago**.")
+
+    if "flagged_priority_review" in requested_fields:
+        flagged = status_result.get("flagged_priority_review")
+        if flagged is not None:
+            answer = "Yes" if flagged else "No"
+            lines.append(
+                f"Flagged for priority review: **{answer}**"
+            )
+
+    if "recommend_escalation" in requested_fields:
+        recommend = status_result.get("recommend_escalation")
+
+        if recommend:
+            lines.append(
+                "Escalation is **recommended** for this application."
+            )
+        else:
+            lines.append(
+                "Escalation is **not currently recommended** for this application."
+            )
+
+    return f"Application **{record_id}**:\n" + "\n".join(lines)
 
 
 def response_node(state: AgentState) -> dict:
-    """
+    """Generate the final response based on the selected route."""
 
-    Args:
-        state (AgentState): _description_
-
-    Returns:
-        dict: _description_
-    """
     if state["route"] == PossibleRoutes.STATUS.value:
         return {
-            "response": _format_status_response(state["status_result"])
+            "response": _format_status_response(
+                state["status_result"],
+                state.get("requested_fields", ["status"]),
+            )
         }
-    else:
-        return {
-            "response": f"Following is related information for your query : {state['rag_result']}"
-        }
+
+    return {
+        "response": (
+            f"Following is related information for your query : "
+            f"{state['rag_result']}"
+        )
+    }

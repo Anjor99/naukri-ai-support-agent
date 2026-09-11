@@ -12,3 +12,4 @@ class AgentState(TypedDict):
     history: dict
     conversation_id: str
     record_id: str
+    requested_fields: list[str]
