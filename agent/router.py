@@ -22,6 +22,7 @@ _STATUS_ANCHOR_PHRASES = (
     "check the application",
     "check my status",
     "update on my application",
+    "check status"
 )
 
 # Phrases that signal a general/policy/FAQ question -- i.e. RAG, even if

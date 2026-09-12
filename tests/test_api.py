@@ -18,6 +18,21 @@ def test_ask_validation() -> None:
     assert response.status_code == 422
 
 
+def test_ask_real_query() -> None:
+    response = client.post(
+        "/ask",
+        json={"query": "What is applicant data retention?"},
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["route"] == "rag"
+    assert data["response"]
+    assert "retention" in data["response"].lower()
+
+
 def test_add_document() -> None:
     response = client.post(
         "/add-document",
@@ -72,6 +87,7 @@ def test_end_to_end_add_then_ask() -> None:
 if __name__ == "__main__":
     test_health()
     test_ask_validation()
+    test_ask_real_query()
     test_add_document()
     test_end_to_end_add_then_ask()
 
