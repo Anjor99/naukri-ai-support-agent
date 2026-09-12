@@ -9,4 +9,5 @@ __pycache__/
 
 .env
 data/
+logs/
 .pytest_cache/
